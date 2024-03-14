@@ -1,0 +1,29 @@
+name: Build PHP 8.3.2
+on:
+  release:
+    types: [published]
+jobs:
+  php:
+    strategy:
+      matrix:
+        arch: x64
+        ts: nts
+    runs-on: windows-2019
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Build
+        uses: ./php
+        with:
+          php-version: ${{ github.event.inputs.php-version }}
+          arch: ${{ matrix.arch }}
+          ts: ${{ matrix.ts }}
+
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Upload artifact to the release
+        uses: php/php-windows-builder/release@v1
+        with:
+          release: 8.3.2
+          token: ${{ secrets.PHP_TOKEN }}
