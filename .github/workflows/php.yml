@@ -1,10 +1,7 @@
 name: Build PHP
 on:
-  workflow_dispatch:
-    inputs:
-      php-version:
-        description: 'PHP version to build'
-        required: true
+  release:
+    types: [published]
 jobs:
   php:
     strategy:
