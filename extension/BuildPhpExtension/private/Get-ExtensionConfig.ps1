@@ -49,13 +49,15 @@ Function Get-ExtensionConfig {
         {
             if(Test-Path $PSScriptRoot\..\config\stubs\$Extension.composer.json) {
                 Copy-Item $PSScriptRoot\..\config\stubs\$Extension.composer.json composer.json
-            } else {
-                throw "No config found for $Extension in composer.json"
             }
+        }
+        $ref = $ExtensionRef
+        if ($ref -match 'refs/pull/(\d+)/merge') {
+            $ref = $Matches[1]
         }
         $config = [PSCustomObject]@{
             name = $Extension
-            ref = $ExtensionRef
+            ref = $ref
             php_version = $PhpVersion
             arch = $Arch
             ts = $Ts
@@ -71,8 +73,6 @@ Function Get-ExtensionConfig {
         if($null -eq $composerJson."php-ext") {
             if(Test-Path $PSScriptRoot\..\config\stubs\$Extension.composer.json) {
                 Copy-Item $PSScriptRoot\..\config\stubs\$Extension.composer.json composer.json
-            } else {
-                throw "No config found for $Extension in composer.json"
             }
         }
 
@@ -98,7 +98,7 @@ Function Get-ExtensionConfig {
                         $extension += "-$($_.Value)"
                     }
                     $config.extensions += $extension
-                } else {
+                } elseif(-not($_.Name -match "php")) {
                     # If using the stub composer.json
                     $Libraries += $_.Name
                 }
@@ -108,8 +108,8 @@ Function Get-ExtensionConfig {
         $Libraries | ForEach-Object {
             if($null -ne $_ -and -not([string]::IsNullOrWhiteSpace($_))) {
                 # TODO: Implement version check
-                $phpSeries = (Invoke-WebRequest -Uri "https://windows.php.net/downloads/php-sdk/deps/series/packages-$PhpVersion-$VsVersion-$Arch-staging.txt").Content
-                $extensionSeries = Invoke-WebRequest -Uri "https://windows.php.net/downloads/pecl/deps"
+                $phpSeries = (Invoke-WebRequest -Uri "https://downloads.php.net/~windows/php-sdk/deps/series/packages-$PhpVersion-$VsVersion-$Arch-staging.txt").Content
+                $extensionSeries = Invoke-WebRequest -Uri "https://downloads.php.net/~windows/pecl/deps"
                 if ($phpSeries.Contains($_) -and -not($config.php_libraries.Contains($_))) {
                     $config.php_libraries += $_
                 } elseif ($extensionSeries.Content.Contains($_) -and -not($config.extension_libraries.Contains($_))) {

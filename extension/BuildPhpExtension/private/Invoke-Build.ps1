@@ -23,8 +23,6 @@ Function Invoke-Build {
 
         $builder = "php-sdk\phpsdk-$($Config.vs_version)-$($Config.Arch).bat"
         $task = (Get-Item -Path "." -Verbose).FullName + '\task.bat'
-        $buildOutput = & $builder -t $task
-
         $suffix = "php_" + (@(
             $Config.name,
             $Config.ref,
@@ -33,8 +31,7 @@ Function Invoke-Build {
             $Config.vs_version,
             $Config.arch
         ) -join "-")
-        $buildOutput | Out-File -FilePath "build-$suffix.txt"
-        Write-Output $buildOutput
+        & $builder -t $task | Tee-Object -FilePath "build-$suffix.txt"
     }
     end {
     }

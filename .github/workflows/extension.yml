@@ -2,12 +2,24 @@ name: Build PHP Extension
 on:
   workflow_dispatch:
     inputs:
-      extension_url:
+      extension-url:
         description: 'Extension URL'
         required: true
-      extension_ref:
+      extension-ref:
         description: 'Extension ref'
         required: true
+      run-tests:
+        description: 'Run tests after building the extension'
+        required: false
+        default: 'false'
+      test-runner:
+        description: 'Test runner to use'
+        required: false
+        default: 'run-tests.php'
+      artifact-naming-scheme:
+        description: 'Naming schema for the artifacts, pie or pecl'
+        required: false
+        default: 'pie'
 jobs:
   get-extension-matrix:
     runs-on: ubuntu-latest
@@ -20,8 +32,8 @@ jobs:
         id: extension-matrix
         uses: ./extension-matrix
         with:
-          extension-url: ${{ inputs.extension_url }}
-          extension-ref: ${{ inputs.extension_ref }}
+          extension-url: ${{ inputs.extension-url }}
+          extension-ref: ${{ inputs.extension-ref }}
           arch-list: 'x64, x86'
           ts-list: 'nts, ts'
 
@@ -29,6 +41,7 @@ jobs:
     needs: get-extension-matrix
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix: ${{fromJson(needs.get-extension-matrix.outputs.matrix)}}
     steps:
       - name: Checkout
@@ -36,11 +49,14 @@ jobs:
       - name: Build the extension
         uses: ./extension
         with:
-          extension-url: ${{ inputs.extension_url }}
-          extension-ref: ${{ inputs.extension_ref }}
+          artifact-naming-scheme: ${{ inputs.artifact-naming-scheme }}
+          extension-url: ${{ inputs.extension-url }}
+          extension-ref: ${{ inputs.extension-ref }}
           php-version: ${{ matrix.php-version }}
           arch: ${{ matrix.arch }}
           ts: ${{ matrix.ts }}
+          run-tests: ${{ inputs.run-tests }}
+          test-runner: ${{ inputs.test-runner }}
 
   artifacts:
     runs-on: ubuntu-latest

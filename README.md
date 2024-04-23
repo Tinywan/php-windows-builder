@@ -75,6 +75,8 @@ Build a PHP extension for a specific version.
 - `ts` (required) - The thread safety to build the extension for.
 - `args` (optional) - Additional arguments to pass to the `configure` script.
 - `libs` (optional) - Libraries required for the extension.
+- `run-tests` (optional) - Run the extension tests. Defaults to `true`.
+- `test-runner` (optional) - The test runner to use. Defaults to `run-tests.php`.
 
 Instead of having to configure all the inputs for the extension action, you can use the `extension-matrix` action to get the matrix of jobs with different input configurations.
 
@@ -102,7 +104,7 @@ jobs:
 
 - `extension-url` (optional) - URL of the extension's git repository, defaults to the current repository.
 - `extension-ref` (optional) - The git reference to build the extension, defaults to the GitHub reference that triggered the workflow.
-- `php-version-list` (optional) - The PHP versions to build the extension for. Defaults to the PHP versions defined in the `package.xml` file.
+- `php-version-list` (optional) - The PHP versions to build the extension for. Defaults to the PHP versions required in the `composer.json` file.
 - `arch-list` (optional) - The architectures to build the extension for. Defaults to `x64, x86`.
 - `ts-list` (optional) - The thread safety to build the extension for. Defaults to `nts, ts`.
 - `allow-old-php-versions` (optional) - Allow building the extension for older PHP versions. Defaults to `false`.
@@ -115,7 +117,7 @@ jobs:
 
 By default, the `extension-matrix` action will use the PHP versions defined in the `php-version-list` input.
 
-If the `php-version-list` input is not provided, it will use the PHP versions defined in the `package.xml` file.
+If the `php-version-list` input is not provided, it will use the PHP versions required in the `composer.json` file.
 
 It will also check if a GitHub hosted Windows runner is available with the required Visual Studio version to build the extension for the PHP version. To override this for building the extension for older PHP versions, you will have to set the input `allow_old_php_versions` to `true` and add self-hosted Windows runners as specified in the table below.
 
@@ -157,6 +159,12 @@ on:
     types: [published]
   # create: # Uncomment this to run on tag/branch creation
   # pull_request: # Uncomment this to run on pull requests  
+
+# This may be needed to be able to upload the assets to the release
+# See: https://docs.github.com/en/actions/security-guides/automatic-token-authentication#modifying-the-permissions-for-the-github_token
+#permissions:
+#  contents: write
+
 jobs:
   get-extension-matrix:
     runs-on: ubuntu-latest
